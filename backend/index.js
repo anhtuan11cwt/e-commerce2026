@@ -1,0 +1,20 @@
+import dotenv from "dotenv";
+import express from "express";
+import connectDB from "./utils/db.js";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(express.json());
+
+connectDB();
+
+app.get("/", (_req, res) => {
+  res.json({ message: "Máy chủ đang chạy" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Máy chủ đang chạy trên cổng ${PORT}`);
+});
