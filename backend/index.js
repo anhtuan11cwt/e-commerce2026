@@ -1,9 +1,12 @@
 import dotenv from "dotenv";
 import express from "express";
+import connectCloudinary from "./config/cloudinary.js";
 import userRoutes from "./routes/user.js";
 import connectDB from "./utils/db.js";
 
 dotenv.config();
+
+connectCloudinary();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
