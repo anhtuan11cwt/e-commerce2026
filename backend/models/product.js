@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
+  about: {
+    required: true,
+    type: String,
+  },
   category: {
     required: true,
     type: String,
@@ -8,10 +12,6 @@ const productSchema = new mongoose.Schema({
   createdAt: {
     default: Date.now,
     type: Date,
-  },
-  description: {
-    required: true,
-    type: String,
   },
   images: [
     {

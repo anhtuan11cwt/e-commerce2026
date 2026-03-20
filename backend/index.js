@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import connectCloudinary from "./config/cloudinary.js";
+import productRoutes from "./routes/product.js";
 import userRoutes from "./routes/user.js";
 import connectDB from "./utils/db.js";
 
@@ -20,6 +21,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/user", userRoutes);
+app.use("/api/product", productRoutes);
 
 app.listen(PORT, () => {
   console.log(`Máy chủ đang chạy trên cổng ${PORT}`);

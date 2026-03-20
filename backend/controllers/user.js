@@ -29,11 +29,24 @@ export const registerUser = tryCatch(async (req, res) => {
 
   const user = await User.create({ email, name, password });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "15d",
-  });
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "15d",
+    },
+  );
 
-  res.status(201).json({ message: "Đăng ký thành công", token, user });
+  res.status(201).json({
+    message: "Đăng ký thành công",
+    token,
+    user: {
+      _id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+  });
 });
 
 export const loginUser = tryCatch(async (req, res) => {
@@ -55,14 +68,27 @@ export const loginUser = tryCatch(async (req, res) => {
     return res.status(400).json({ message: "Email hoặc mật khẩu không đúng" });
   }
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "15d",
-  });
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "15d",
+    },
+  );
 
-  res.status(200).json({ message: "Đăng nhập thành công", token, user });
+  res.status(200).json({
+    message: "Đăng nhập thành công",
+    token,
+    user: {
+      _id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+  });
 });
 
 export const myProfile = tryCatch(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select("-password");
   res.json(user);
 });
