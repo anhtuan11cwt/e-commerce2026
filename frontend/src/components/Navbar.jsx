@@ -1,16 +1,16 @@
 import { ShoppingBag, ShoppingCart, User } from "lucide-react";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserData } from "@/context/userContext.js";
 
 const navLinks = [
   { label: "Trang chủ", path: "/" },
@@ -19,11 +19,14 @@ const navLinks = [
 
 function Navbar() {
   const navigate = useNavigate();
-  const [cartCount] = useState(3);
-  const [isLoggedIn] = useState(false);
+
+  // Auth state from Context
+  const { user, isAuth, loading, logout } = useUserData();
+
+  const cartCount = 3;
 
   const handleLogout = () => {
-    // TODO: implement logout logic
+    logout();
   };
 
   return (
@@ -81,8 +84,13 @@ function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              {isLoggedIn ? (
+              {loading ? (
+                <DropdownMenuItem disabled>Đang tải...</DropdownMenuItem>
+              ) : isAuth ? (
                 <>
+                  <DropdownMenuLabel className="w-full truncate">
+                    {user?.email ?? "Tài khoản"}
+                  </DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => navigate("/account")}>
                     Tài khoản
                   </DropdownMenuItem>

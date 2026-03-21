@@ -1,4 +1,4 @@
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,16 +14,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { useUserData } from "@/context/userContext.js";
+
 function Login() {
+  const { loginUser, btnLoading } = useUserData();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: implement login API call
-    console.log({ email, password });
+    await loginUser(email, password);
   };
 
   return (
@@ -41,6 +43,7 @@ function Login() {
             <div className="space-y-2">
               <Label htmlFor="email">Địa chỉ email</Label>
               <Input
+                disabled={btnLoading}
                 id="email"
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ban@email.com"
@@ -49,11 +52,12 @@ function Login() {
                 value={email}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 pb-4">
               <Label htmlFor="password">Mật khẩu</Label>
               <div className="relative">
                 <Input
                   className="pr-10"
+                  disabled={btnLoading}
                   id="password"
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -63,6 +67,7 @@ function Login() {
                 />
                 <button
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                  disabled={btnLoading}
                   onClick={() => setShowPassword((prev) => !prev)}
                   type="button"
                 >
@@ -79,8 +84,17 @@ function Login() {
             </div>
           </CardContent>
           <CardFooter className="flex-col">
-            <Button className="w-full" size="lg" type="submit">
-              Đăng nhập
+            <Button
+              className="w-full"
+              disabled={btnLoading}
+              size="lg"
+              type="submit"
+            >
+              {btnLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Đăng nhập"
+              )}
             </Button>
           </CardFooter>
         </form>

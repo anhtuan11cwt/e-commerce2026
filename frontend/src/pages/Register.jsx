@@ -1,4 +1,4 @@
-import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +14,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { useUserData } from "@/context/userContext.js";
+
 function Register() {
+  const { registerUser, btnLoading } = useUserData();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,10 +26,10 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: implement register API call
-    console.log({ confirmPassword, email, name, password });
+    if (password !== confirmPassword) return;
+    await registerUser(name, email, password);
   };
 
   return (
@@ -44,6 +47,7 @@ function Register() {
             <div className="space-y-2">
               <Label htmlFor="name">Họ và tên</Label>
               <Input
+                disabled={btnLoading}
                 id="name"
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nguyễn Văn A"
@@ -55,6 +59,7 @@ function Register() {
             <div className="space-y-2">
               <Label htmlFor="email">Địa chỉ email</Label>
               <Input
+                disabled={btnLoading}
                 id="email"
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ban@email.com"
@@ -68,6 +73,7 @@ function Register() {
               <div className="relative">
                 <Input
                   className="pr-10"
+                  disabled={btnLoading}
                   id="password"
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -77,6 +83,7 @@ function Register() {
                 />
                 <button
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                  disabled={btnLoading}
                   onClick={() => setShowPassword((prev) => !prev)}
                   type="button"
                 >
@@ -91,11 +98,12 @@ function Register() {
                 </button>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 pb-4">
               <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
               <div className="relative">
                 <Input
                   className="pr-10"
+                  disabled={btnLoading}
                   id="confirmPassword"
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
@@ -105,6 +113,7 @@ function Register() {
                 />
                 <button
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                  disabled={btnLoading}
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
                   type="button"
                 >
@@ -121,8 +130,17 @@ function Register() {
             </div>
           </CardContent>
           <CardFooter className="flex-col">
-            <Button className="w-full" size="lg" type="submit">
-              Đăng ký
+            <Button
+              className="w-full"
+              disabled={btnLoading}
+              size="lg"
+              type="submit"
+            >
+              {btnLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Đăng ký"
+              )}
             </Button>
           </CardFooter>
         </form>
