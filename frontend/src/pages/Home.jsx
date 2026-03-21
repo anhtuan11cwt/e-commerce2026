@@ -1,41 +1,11 @@
 import { ArrowRight, ShoppingBag, Truck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
+import Hero from "@/components/Hero";
 
 function Home() {
-  const navigate = useNavigate();
-
   return (
     <div>
-      {/* Hero Section */}
-      <section className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-20 text-center sm:px-6 lg:px-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-muted-foreground text-sm">
-          <ShoppingBag className="h-4 w-4" />
-          Mua sắm dễ dàng, giao hàng nhanh chóng
-        </div>
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          Khám phá sản phẩm
-          <span className="text-primary"> chất lượng cao</span>
-        </h1>
-        <p className="max-w-xl text-lg text-muted-foreground">
-          Hàng ngàn sản phẩm đa dạng với giá tốt nhất. Trải nghiệm mua sắm trực
-          tuyến tiện lợi và an toàn tại QuickCart.
-        </p>
-        <div className="flex gap-3">
-          <Button onClick={() => navigate("/product")} size="lg">
-            Mua ngay
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            onClick={() => navigate("/product")}
-            size="lg"
-            variant="outline"
-          >
-            Xem sản phẩm
-          </Button>
-        </div>
-      </section>
+      <Hero />
 
       {/* Features */}
       <section className="border-t border-border/40 bg-muted/30">

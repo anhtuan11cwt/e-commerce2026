@@ -14,7 +14,7 @@ import { useUserData } from "@/context/userContext.js";
 
 const navLinks = [
   { label: "Trang chủ", path: "/" },
-  { label: "Sản phẩm", path: "/product" },
+  { label: "Sản phẩm", path: "/products" },
 ];
 
 function Navbar() {

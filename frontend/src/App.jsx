@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { useUserData } from "@/context/userContext.js";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
+import Products from "@/pages/Products";
 import Register from "@/pages/Register";
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
       <main className="flex-1">
         <Routes>
           <Route element={<Home />} path="/" />
+          <Route element={<Products />} path="/products" />
           <Route
             element={isAuth ? <Navigate replace to="/" /> : <Login />}
             path="/login"
