@@ -12,6 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useCartData } from "@/context/cartContext";
 import { useProductData } from "@/context/productContext";
 import { useUserData } from "@/context/userContext";
 import { format_vnd } from "@/utils/format_vnd";
@@ -19,8 +20,9 @@ import { format_vnd } from "@/utils/format_vnd";
 function ProductPage() {
   const { id } = useParams();
   const { isAuth } = useUserData();
-  const { addToCart, fetchProduct, product, productLoading, relatedProduct } =
+  const { fetchProduct, product, productLoading, relatedProduct } =
     useProductData();
+  const { addToCart } = useCartData();
 
   const [quantity, setQuantity] = useState(1);
   const [btnLoading, setBtnLoading] = useState(false);

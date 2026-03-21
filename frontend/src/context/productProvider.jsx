@@ -57,17 +57,6 @@ export function ProductProvider({ children }) {
     }
   }, []);
 
-  const addToCart = useCallback(async (productId) => {
-    const { default: Cookies } = await import("js-cookie");
-    const token = Cookies.get("token");
-    const { data } = await axios.post(
-      `${SERVER_URL}/api/cart/add`,
-      { product: productId },
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    return data;
-  }, []);
-
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -94,7 +83,6 @@ export function ProductProvider({ children }) {
   return (
     <ProductContext.Provider
       value={{
-        addToCart,
         categories,
         category,
         clearFilter,

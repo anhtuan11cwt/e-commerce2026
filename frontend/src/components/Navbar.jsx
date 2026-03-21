@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCartData } from "@/context/cartContext.js";
 import { useUserData } from "@/context/userContext.js";
 
 const navLinks = [
@@ -22,10 +23,10 @@ function Navbar() {
 
   // Auth state from Context
   const { user, isAuth, loading, logout } = useUserData();
-
-  const cartCount = 3;
+  const { totalItem, setTotalItem } = useCartData();
 
   const handleLogout = () => {
+    setTotalItem(0);
     logout();
   };
 
@@ -67,9 +68,9 @@ function Navbar() {
             variant="ghost"
           >
             <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 && (
+            {totalItem > 0 && (
               <span className="-top-1 -right-1 absolute flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {cartCount}
+                {totalItem}
               </span>
             )}
             <span className="sr-only">Giỏ hàng</span>

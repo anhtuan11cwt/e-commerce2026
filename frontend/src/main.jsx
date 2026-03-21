@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
 import { ThemeProvider } from "./components/theme-provider.jsx";
+import { CartProvider } from "./context/cartProvider.jsx";
 import { ProductProvider } from "./context/productProvider.jsx";
 import { UserProvider } from "./context/userProvider.jsx";
 
@@ -12,9 +13,11 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <UserProvider>
-          <ProductProvider>
-            <App />
-          </ProductProvider>
+          <CartProvider>
+            <ProductProvider>
+              <App />
+            </ProductProvider>
+          </CartProvider>
         </UserProvider>
       </ThemeProvider>
     </BrowserRouter>
