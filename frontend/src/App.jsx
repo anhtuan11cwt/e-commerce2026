@@ -1,9 +1,11 @@
 import "./App.css";
+import { Button } from "./components/ui/button";
 
 function App() {
   return (
     <div>
       <h1 className="font-bold text-3xl underline">Hello world!</h1>
+      <Button>Click me</Button>
     </div>
   );
 }
