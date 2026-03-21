@@ -1,6 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import { CartContext, SERVER_URL } from "./cartContext.js";
 import { useUserData } from "./userContext.js";
@@ -53,6 +54,32 @@ export function CartProvider({ children }) {
     [fetchCart],
   );
 
+  const updateCart = useCallback(
+    async (action, id) => {
+      const token = Cookies.get("token");
+      const { data } = await axios.post(
+        `${SERVER_URL}/api/cart/update?action=${action}`,
+        { id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      await fetchCart();
+      return data;
+    },
+    [fetchCart],
+  );
+
+  const removeFromCart = useCallback(
+    async (id) => {
+      const token = Cookies.get("token");
+      const { data } = await axios.get(`${SERVER_URL}/api/cart/remove/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success(data.message);
+      await fetchCart();
+    },
+    [fetchCart],
+  );
+
   // Tải giỏ khi mount lần đầu (khi đã đăng nhập và F5 trang)
   useEffect(() => {
     let cancelled = false;
@@ -98,9 +125,11 @@ export function CartProvider({ children }) {
     addToCart,
     cart,
     fetchCart,
+    removeFromCart,
     setTotalItem,
     subtotal,
     totalItem,
+    updateCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
