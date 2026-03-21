@@ -7,6 +7,7 @@ import { useUserData } from "@/context/userContext.js";
 import Cart from "@/pages/Cart";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
+import NotFound from "@/pages/NotFound";
 import Products from "@/pages/Products";
 import Register from "@/pages/Register";
 
@@ -36,6 +37,7 @@ function App() {
             element={isAuth ? <Cart /> : <Navigate replace to="/login" />}
             path="/cart"
           />
+          <Route element={<NotFound />} path="*" />
         </Routes>
       </main>
       <Footer />
