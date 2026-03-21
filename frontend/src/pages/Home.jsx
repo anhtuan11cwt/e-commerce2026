@@ -1,13 +1,42 @@
 import { ArrowRight, ShoppingBag, Truck } from "lucide-react";
 
 import Hero from "@/components/Hero";
+import ProductCard from "@/components/ProductCard";
+import { useProductData } from "@/context/productContext";
 
 function Home() {
+  const { loading, newProd } = useProductData();
+
   return (
     <div>
       <Hero />
 
-      {/* Features */}
+      {/* Sản phẩm mới nhất */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <h2 className="mb-6 font-bold text-xl tracking-tight">
+          Sản phẩm mới nhất
+        </h2>
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                className="h-[340px] animate-pulse rounded-xl bg-muted"
+                key={i.toString()}
+              />
+            ))}
+          </div>
+        ) : newProd && newProd.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {newProd.map((element) => (
+              <ProductCard key={element._id} latest="yes" product={element} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">Không có sản phẩm nào</p>
+        )}
+      </section>
+
+      {/* Tính năng nổi bật */}
       <section className="border-t border-border/40 bg-muted/30">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
           <div className="flex flex-col items-center gap-3 text-center">
