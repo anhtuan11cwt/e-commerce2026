@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Loading } from "@/components/Loading";
 import Navbar from "@/components/Navbar";
 import { useUserData } from "@/context/userContext.js";
+import Cart from "@/pages/Cart";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Products from "@/pages/Products";
@@ -30,6 +31,10 @@ function App() {
           <Route
             element={isAuth ? <Navigate replace to="/" /> : <Register />}
             path="/register"
+          />
+          <Route
+            element={isAuth ? <Cart /> : <Navigate replace to="/login" />}
+            path="/cart"
           />
         </Routes>
       </main>

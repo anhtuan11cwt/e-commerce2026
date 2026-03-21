@@ -92,6 +92,7 @@ export function UserProvider({ children }) {
     setUser([]);
     setIsAuth(false);
     navigate("/login");
+    toast.success("Đăng xuất thành công");
   };
 
   const value = {
