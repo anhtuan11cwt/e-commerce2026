@@ -34,12 +34,14 @@ export function useProductFilter() {
     clearFilter,
     nextPage,
     previousPage,
+    fetchProduct,
   } = context;
 
   return {
     categories,
     category,
     clearFilter,
+    fetchProduct,
     nextPage,
     page,
     previousPage,

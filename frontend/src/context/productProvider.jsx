@@ -15,6 +15,10 @@ export function ProductProvider({ children }) {
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState([]);
 
+  const [product, setProduct] = useState(null);
+  const [relatedProduct, setRelatedProduct] = useState([]);
+  const [productLoading, setProductLoading] = useState(true);
+
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
@@ -38,6 +42,31 @@ export function ProductProvider({ children }) {
       setLoading(false);
     }
   }, [search, category, price, page]);
+
+  const fetchProduct = useCallback(async (id) => {
+    setProductLoading(true);
+    try {
+      const { data } = await axios.get(`${SERVER_URL}/api/product/${id}`);
+      setProduct(data.product);
+      setRelatedProduct(data.relatedProduct);
+    } catch {
+      setProduct(null);
+      setRelatedProduct([]);
+    } finally {
+      setProductLoading(false);
+    }
+  }, []);
+
+  const addToCart = useCallback(async (productId) => {
+    const { default: Cookies } = await import("js-cookie");
+    const token = Cookies.get("token");
+    const { data } = await axios.post(
+      `${SERVER_URL}/api/cart/add`,
+      { product: productId },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return data;
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -65,16 +94,21 @@ export function ProductProvider({ children }) {
   return (
     <ProductContext.Provider
       value={{
+        addToCart,
         categories,
         category,
         clearFilter,
+        fetchProduct,
         loading,
         newProd,
         nextPage,
         page,
         previousPage,
         price,
+        product,
+        productLoading,
         products,
+        relatedProduct,
         search,
         setCategory,
         setPage,

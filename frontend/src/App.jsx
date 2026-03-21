@@ -8,6 +8,7 @@ import Cart from "@/pages/Cart";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
+import ProductPage from "@/pages/ProductPage";
 import Products from "@/pages/Products";
 import Register from "@/pages/Register";
 
@@ -25,6 +26,7 @@ function App() {
         <Routes>
           <Route element={<Home />} path="/" />
           <Route element={<Products />} path="/products" />
+          <Route element={<ProductPage />} path="/product/:id" />
           <Route
             element={isAuth ? <Navigate replace to="/" /> : <Login />}
             path="/login"
