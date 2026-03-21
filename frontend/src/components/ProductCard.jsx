@@ -9,7 +9,7 @@ function ProductCard({ product, latest }) {
   const navigate = useNavigate();
 
   return (
-    <div className="group/card flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition-shadow hover:shadow-md">
+    <div className="group/card flex flex-col overflow-hidden rounded-xl border border-border bg-card ring-1 ring-foreground/10 transition-shadow hover:shadow-md">
       <div className="relative h-[220px] overflow-hidden bg-muted sm:h-[260px]">
         <Link to={`/product/${product._id}`}>
           <img
