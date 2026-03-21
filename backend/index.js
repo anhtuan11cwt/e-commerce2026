@@ -3,6 +3,7 @@ import express from "express";
 import connectCloudinary from "./config/cloudinary.js";
 import addressRoutes from "./routes/address.js";
 import cartRoutes from "./routes/cart.js";
+import orderRoutes from "./routes/order.js";
 import productRoutes from "./routes/product.js";
 import userRoutes from "./routes/user.js";
 import connectDB from "./utils/db.js";
@@ -26,6 +27,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/address", addressRoutes);
+app.use("/api/order", orderRoutes);
 
 app.listen(PORT, () => {
   console.log(`Máy chủ đang chạy trên cổng ${PORT}`);
