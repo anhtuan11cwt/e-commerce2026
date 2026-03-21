@@ -41,11 +41,11 @@ export function CartProvider({ children }) {
   }, [loadCartData]);
 
   const addToCart = useCallback(
-    async (productId) => {
+    async (productId, quantity = 1) => {
       const token = Cookies.get("token");
       const { data } = await axios.post(
         `${SERVER_URL}/api/cart/add`,
-        { product: productId },
+        { product: productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       await fetchCart();

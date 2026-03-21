@@ -59,8 +59,9 @@ function ProductPage() {
 
     setBtnLoading(true);
     try {
-      const data = await addToCart(product._id);
+      const data = await addToCart(product._id, quantity);
       toast.success(data.message || "Đã thêm vào giỏ hàng");
+      setQuantity(1);
     } catch (error) {
       const message =
         error?.response?.data?.message || "Thêm vào giỏ hàng thất bại";

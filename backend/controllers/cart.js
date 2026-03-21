@@ -3,7 +3,7 @@ import Product from "../models/product.js";
 import tryCatch from "../utils/tryCatch.js";
 
 export const addToCart = tryCatch(async (req, res) => {
-  const { product: productId } = req.body;
+  const { product: productId, quantity = 1 } = req.body;
   const userId = req.user._id;
 
   const cart = await Cart.findOne({
@@ -12,11 +12,12 @@ export const addToCart = tryCatch(async (req, res) => {
   }).populate("product");
 
   if (cart) {
-    if (cart.quantity >= cart.product.stock) {
+    const newQty = cart.quantity + quantity;
+    if (newQty > cart.product.stock) {
       return res.status(400).json({ message: "Hết hàng" });
     }
 
-    cart.quantity += 1;
+    cart.quantity = newQty;
     await cart.save();
 
     return res.status(200).json({ message: "Đã thêm vào giỏ hàng" });
@@ -28,13 +29,13 @@ export const addToCart = tryCatch(async (req, res) => {
     return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
   }
 
-  if (product.stock === 0) {
+  if (quantity > product.stock) {
     return res.status(400).json({ message: "Hết hàng" });
   }
 
   await Cart.create({
     product: productId,
-    quantity: 1,
+    quantity,
     user: userId,
   });
 
