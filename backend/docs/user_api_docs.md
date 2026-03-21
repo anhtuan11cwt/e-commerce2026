@@ -39,20 +39,11 @@
 ```
 
 - **Response**:
-  - 201 (thành công):
+  - 201 (thành công): Tạo tài khoản; **không** trả JWT. Client cần gọi `POST /api/user/login` để lấy token.
 
 ```json
 {
-  "message": "Đăng ký thành công",
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "_id": "...",
-    "name": "Nguyen Van A",
-    "email": "user@example.com",
-    "role": "user",
-    "createdAt": "...",
-    "updatedAt": "..."
-  }
+  "message": "Đăng ký thành công. Vui lòng đăng nhập."
 }
 ```
 
@@ -109,9 +100,7 @@
     "_id": "...",
     "name": "Nguyen Van A",
     "email": "user@example.com",
-    "role": "user",
-    "createdAt": "...",
-    "updatedAt": "..."
+    "role": "user"
   }
 }
 ```
@@ -140,7 +129,7 @@
 - **URL**: `http://localhost:5000/api/user/me`
 - **Authorization**: Có (yêu cầu đăng nhập)
 - **Headers**:
-  - `Authorization: Bearer {JWT_TOKEN}` (token nhận được từ đăng ký/đăng nhập)
+  - `Authorization: Bearer {JWT_TOKEN}` (token nhận được từ đăng nhập)
 - **Response**:
   - 200 (thành công):
 
@@ -175,6 +164,7 @@
 
 ## Ghi chú chung
 
-- **JWT Token**: Sau khi đăng ký/đăng nhập, server trả về token trong response body. Token hết hạn sau 15 ngày.
+- **JWT Token**: Chỉ **đăng nhập** (`POST /login`) trả về `token` trong body. Token hết hạn sau 15 ngày.
+- **Đăng ký**: Chỉ tạo user; không cấp JWT — luồng client thường chuyển sang trang đăng nhập.
 - **Xác thực**: Gửi token qua header `Authorization: Bearer {token}` cho các API cần xác thực.
 - **Role mặc định**: `user`

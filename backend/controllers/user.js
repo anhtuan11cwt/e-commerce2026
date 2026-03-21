@@ -27,25 +27,10 @@ export const registerUser = tryCatch(async (req, res) => {
     return res.status(400).json({ message: "Email đã được đăng ký" });
   }
 
-  const user = await User.create({ email, name, password });
-
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "15d",
-    },
-  );
+  await User.create({ email, name, password });
 
   res.status(201).json({
-    message: "Đăng ký thành công",
-    token,
-    user: {
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    },
+    message: "Đăng ký thành công. Vui lòng đăng nhập.",
   });
 });
 
