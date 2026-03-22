@@ -98,6 +98,13 @@ function Navbar() {
                   <DropdownMenuItem onClick={() => navigate("/orders")}>
                     Đơn hàng
                   </DropdownMenuItem>
+                  {user && user.role === "admin" && (
+                    <DropdownMenuItem
+                      onClick={() => navigate("/admin/dashboard")}
+                    >
+                      Dashboard
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     Đăng xuất

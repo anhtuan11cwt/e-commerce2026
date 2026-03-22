@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Loading } from "@/components/Loading";
 import Navbar from "@/components/Navbar";
 import { useUserData } from "@/context/userContext.js";
+import AdminDashboard from "@/pages/AdminDashboard";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Home from "@/pages/Home";
@@ -65,6 +66,12 @@ function App() {
           <Route
             element={isAuth ? <OrderPage /> : <Navigate replace to="/login" />}
             path="/order/:id"
+          />
+          <Route
+            element={
+              isAuth ? <AdminDashboard /> : <Navigate replace to="/login" />
+            }
+            path="/admin/dashboard"
           />
           <Route element={<NotFound />} path="*" />
         </Routes>
