@@ -13,6 +13,7 @@ import {
   Bar,
   BarChart,
   Cell,
+  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -64,8 +65,12 @@ function InfoPage() {
   const totalOrders = (stats.codCount || 0) + (stats.onlineCount || 0);
 
   const paymentData = [
-    { fill: "#8884d8", name: "Online", value: stats.onlineCount || 0 },
-    { fill: "#82ca9d", name: "COD", value: stats.codCount || 0 },
+    {
+      fill: "hsl(262, 83%, 58%)",
+      name: "Online",
+      value: stats.onlineCount || 0,
+    },
+    { fill: "hsl(142, 71%, 45%)", name: "COD", value: stats.codCount || 0 },
   ];
 
   const percentageData = paymentData.map((item) => ({
@@ -165,6 +170,14 @@ function InfoPage() {
                     color: "var(--color-card-foreground)",
                   }}
                 />
+                <Legend
+                  formatter={(value) => (
+                    <span style={{ color: "var(--color-card-foreground)" }}>
+                      {value}
+                    </span>
+                  )}
+                  verticalAlign="bottom"
+                />
                 <text
                   fill="var(--color-card-foreground)"
                   fontSize={14}
@@ -220,6 +233,14 @@ function InfoPage() {
                   }}
                   formatter={(value) => [`${value}%`, "Tỷ lệ"]}
                 />
+                <Legend
+                  formatter={(value) => (
+                    <span style={{ color: "var(--color-card-foreground)" }}>
+                      {value}
+                    </span>
+                  )}
+                  verticalAlign="bottom"
+                />
                 <text
                   fill="var(--color-card-foreground)"
                   fontSize={14}
@@ -255,32 +276,49 @@ function InfoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer height={400} width="100%">
+            <ResponsiveContainer height={350} width="100%">
               <BarChart
                 data={productData}
-                margin={{ bottom: 20, left: 10, right: 10, top: 10 }}
+                margin={{ bottom: 20, left: 0, right: 10, top: 10 }}
               >
                 <XAxis
                   angle={-45}
                   dataKey="title"
-                  height={60}
+                  height={70}
                   interval={0}
                   textAnchor="end"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fill: "var(--color-card-foreground)", fontSize: 11 }}
                   tickLine={false}
                 />
-                <YAxis allowDecimals={false} tickLine={false} />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
+                  tickLine={false}
+                />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload?.length) {
                       return (
-                        <div className="rounded-lg border bg-white p-3 shadow-lg dark:bg-zinc-900">
+                        <div
+                          className="rounded-lg border p-3 shadow-lg"
+                          style={{
+                            backgroundColor: "var(--color-card)",
+                            borderColor: "var(--color-border)",
+                            color: "var(--color-card-foreground)",
+                          }}
+                        >
                           <p className="font-medium text-sm">
                             {payload[0].payload.title}
                           </p>
-                          <p className="text-muted-foreground text-sm">
+                          <p
+                            className="text-sm"
+                            style={{ color: "var(--color-muted-foreground)" }}
+                          >
                             Đã bán:{" "}
-                            <span className="font-bold text-foreground">
+                            <span
+                              className="font-bold"
+                              style={{ color: "var(--color-card-foreground)" }}
+                            >
                               {payload[0].value}
                             </span>{" "}
                             sản phẩm
@@ -291,7 +329,11 @@ function InfoPage() {
                     return null;
                   }}
                 />
-                <Bar dataKey="sold" fill="#8884d8" radius={[8, 8, 0, 0]} />
+                <Bar
+                  dataKey="sold"
+                  fill="var(--color-primary)"
+                  radius={[8, 8, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

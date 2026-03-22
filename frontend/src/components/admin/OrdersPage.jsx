@@ -118,8 +118,8 @@ function OrdersPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
+      <div className="overflow-x-auto rounded-lg border">
+        <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow>
               <TableHead>Mã đơn hàng</TableHead>

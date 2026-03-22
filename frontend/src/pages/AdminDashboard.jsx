@@ -39,7 +39,7 @@ function AdminDashboard() {
     <div className="flex min-h-[calc(100vh-4rem)]">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-border bg-background/80 backdrop-blur-lg transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-border bg-background/95 backdrop-blur-lg transition-transform duration-300 lg:sticky lg:top-0 lg:h-[calc(100vh-4rem)] lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

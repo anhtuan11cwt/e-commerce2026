@@ -28,6 +28,7 @@ function ProductPage() {
   const [btnLoading, setBtnLoading] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ behavior: "smooth", top: 0 });
     fetchProduct(id);
     setQuantity(1);
   }, [id, fetchProduct]);
