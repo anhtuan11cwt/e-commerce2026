@@ -1,9 +1,11 @@
 import { Home, Info, Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import HomePage from "@/components/admin/HomePage";
 import InfoPage from "@/components/admin/InfoPage";
 import OrdersPage from "@/components/admin/OrdersPage";
 import { Button } from "@/components/ui/button";
+import { useUserData } from "@/context/userContext.js";
 
 const navItems = [
   { icon: Home, label: "Sản phẩm", value: "home" },
@@ -12,8 +14,13 @@ const navItems = [
 ];
 
 function AdminDashboard() {
+  const { user } = useUserData();
   const [selectedPage, setSelectedPage] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (user?.role !== "admin") {
+    return <Navigate to="/" />;
+  }
 
   const renderPageContent = () => {
     switch (selectedPage) {

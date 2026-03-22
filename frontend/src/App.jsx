@@ -18,6 +18,20 @@ import ProductPage from "@/pages/ProductPage";
 import Products from "@/pages/Products";
 import Register from "@/pages/Register";
 
+function AdminRoute({ children }) {
+  const { isAuth, user } = useUserData();
+
+  if (!isAuth) {
+    return <Navigate replace to="/login" />;
+  }
+
+  if (user?.role !== "admin") {
+    return <Navigate replace to="/" />;
+  }
+
+  return children;
+}
+
 function App() {
   const { isAuth, loading } = useUserData();
 
@@ -69,7 +83,9 @@ function App() {
           />
           <Route
             element={
-              isAuth ? <AdminDashboard /> : <Navigate replace to="/login" />
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
             path="/admin/dashboard"
           />
