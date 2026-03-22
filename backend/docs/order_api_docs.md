@@ -13,8 +13,8 @@
 | `createdAt`   | Date     | Mặc định `Date.now` | Thời điểm tạo đơn |
 | `items`       | mảng     | Có (qua logic tạo đơn) | Mỗi phần tử: `name`, `price`, `product` (ObjectId), `quantity` |
 | `method`      | string   | Có       | Phương thức thanh toán / giao nhận (ví dụ `COD`, `Online`) |
-| `paidAt`      | string   | Không    | Thời điểm thanh toán (nếu có) |
-| `paymentInfo` | string   | Không    | Thông tin thanh toán bổ sung |
+| `paidAt`      | string   | Không    | Thời điểm thanh toán (ISO string; đơn Online sau khi Stripe xác nhận) |
+| `paymentInfo` | string   | Không    | ID phiên Stripe Checkout (`session.id`) — chỉ đơn thanh toán online |
 | `phoneNumber` | number   | Có       | Số điện thoại liên hệ |
 | `status`      | string   | Mặc định `"pending"` | Trạng thái đơn hàng |
 | `subTotal`    | number   | Có       | Tổng tiền hàng (tính từ giỏ) |
@@ -98,7 +98,85 @@
 
 ---
 
-## 2. Lấy danh sách đơn hàng của user hiện tại
+## 2. Tạo phiên thanh toán online (Stripe Checkout)
+
+- **Method**: POST
+- **URL**: `http://localhost:5000/api/order/new/online`
+- **Authorization**: Có (yêu cầu đăng nhập)
+- **Headers**:
+  - `Authorization: Bearer {JWT_TOKEN}`
+  - `Content-Type: application/json`
+- **Body** (JSON): Giống COD — `method` (ví dụ `"Online"`), `phone`, `address`. Metadata gửi sang Stripe để dùng khi xác nhận thanh toán.
+
+**Luồng xử lý (server)**:
+
+1. Lấy giỏ hàng user, populate `product` (`title`, `price`, `images`).
+2. Nếu giỏ trống → 400.
+3. Tạo `line_items` cho Stripe: tiền tệ `vnd`, `unit_amount` = giá sản phẩm (số nguyên), ảnh đầu tiên (nếu có) đưa vào `product_data.images`.
+4. Tạo Stripe Checkout Session (`mode: "payment"`, `payment_method_types: ["card"]`), `metadata`: `address`, `method`, `phone`, `subTotal`, `userId`; `success_url` trỏ về `{FRONTEND_URL}/order-processing?session_id={CHECKOUT_SESSION_ID}`; `cancel_url` về `{FRONTEND_URL}/cart`.
+5. **Chưa** tạo Order, **chưa** trừ kho — chỉ trả URL thanh toán.
+
+- **Response**:
+  - 200 (thành công):
+
+```json
+{
+  "url": "https://checkout.stripe.com/..."
+}
+```
+
+  - 400 (giỏ hàng trống): như mục 1.
+
+**Biến môi trường** (máy chủ): `STRIPE_SECRET_KEY`, `FRONTEND_URL`.
+
+---
+
+## 3. Xác nhận thanh toán online (sau redirect từ Stripe)
+
+- **Method**: POST
+- **URL**: `http://localhost:5000/api/order/verify/payment?sessionId={CHECKOUT_SESSION_ID}`
+- **Authorization**: Có (user phải là người đã đăng nhập khi tạo session; `sessionId` khớp phiên Stripe)
+- **Headers**:
+  - `Authorization: Bearer {JWT_TOKEN}`
+- **Query**:
+  - `sessionId` (string): ID phiên Stripe Checkout (cùng giá trị với query `session_id` trên `success_url`)
+
+**Luồng xử lý (server)**:
+
+1. `stripe.checkout.sessions.retrieve(sessionId)`.
+2. Nếu `payment_status !== "paid"` → 400.
+3. Nếu đã tồn tại Order có `paymentInfo === sessionId` → 400 (tránh tạo trùng).
+4. Đọc `userId`, `method`, `phone`, `address` từ `session.metadata`; lấy giỏ theo `userId`.
+5. Nếu giỏ trống → 400 (ví dụ đã xử lý trước đó).
+6. Tạo Order (có `paidAt`, `paymentInfo: sessionId`, `phoneNumber` từ metadata), cập nhật `stock` / `sold`, xóa giỏ, gửi email xác nhận.
+
+- **Response**:
+  - 200 (thành công):
+
+```json
+{
+  "message": "Thanh toán thành công",
+  "order": { "...": "document Order mới tạo" }
+}
+```
+
+  - 400:
+
+```json
+{ "message": "Thanh toán chưa hoàn tất" }
+```
+
+```json
+{ "message": "Đơn hàng đã tồn tại" }
+```
+
+```json
+{ "message": "Giỏ hàng trống" }
+```
+
+---
+
+## 4. Lấy danh sách đơn hàng của user hiện tại
 
 - **Method**: GET
 - **URL**: `http://localhost:5000/api/order/all`
@@ -135,7 +213,7 @@
 
 ---
 
-## 3. Lấy tất cả đơn hàng (admin)
+## 5. Lấy tất cả đơn hàng (admin)
 
 - **Method**: GET
 - **URL**: `http://localhost:5000/api/order/admin/all`
@@ -176,7 +254,7 @@
 
 ---
 
-## 4. Thống kê đơn hàng (admin)
+## 6. Thống kê đơn hàng (admin)
 
 - **Method**: GET
 - **URL**: `http://localhost:5000/api/order/stats`
@@ -210,7 +288,7 @@
 
 ---
 
-## 5. Chi tiết một đơn hàng theo ID
+## 7. Chi tiết một đơn hàng theo ID
 
 - **Method**: GET
 - **URL**: `http://localhost:5000/api/order/{id}`
@@ -266,7 +344,7 @@
 
 ---
 
-## 6. Cập nhật trạng thái đơn hàng (admin)
+## 8. Cập nhật trạng thái đơn hàng (admin)
 
 - **Method**: POST
 - **URL**: `http://localhost:5000/api/order/{id}`
@@ -314,10 +392,12 @@
 ## Ghi chú chung
 
 - **Đăng ký route** (`index.js`): `app.use("/api/order", orderRoutes)` — toàn bộ endpoint đặt hàng nằm dưới prefix `/api/order`.
-- **Thứ tự route**: Các đường dẫn cố định (`/all`, `/admin/all`, `/stats`, `/new/cod`) được khai báo trước `/:id` để không bị nhầm với ID.
-- **Xác thực**: Các handler dùng middleware `isAuth` — cần JWT trong `Authorization: Bearer ...`. Email xác nhận đơn lấy từ `req.user.email`.
-- **Nguồn dữ liệu khi tạo đơn COD**: Sản phẩm và số lượng lấy từ **giỏ hàng** của user, không gửi `items` trong body.
-- **Email xác nhận** (`utils/sendOrderConfirmation.js`): Nodemailer, SMTP Gmail (`smtp.gmail.com`, cổng 465, SSL). Biến môi trường: `EMAIL`, `EMAIL_PASSWORD`. Trong controller, gửi mail **không** `await` — response 201 có thể trả về trước khi email gửi xong.
+- **Thứ tự route** (`routes/order.js`): Các đường dẫn cố định (`/new/cod`, `/new/online`, `/verify/payment`, `/all`, `/admin/all`, `/stats`) khai báo **trước** `GET /:id` và `POST /:id` để không bị khớp nhầm `id` với chuỗi như `"all"` hoặc `"stats"`.
+- **Xác thực**: Mọi route order dùng `isAuth` — JWT trong `Authorization: Bearer ...`. Email xác nhận COD lấy từ `req.user.email`; sau thanh toán online, email lấy từ user populate trên đơn.
+- **COD vs Online**: COD tạo đơn và trừ kho ngay tại `POST /new/cod`. Online chỉ tạo phiên Stripe tại `POST /new/online`; đơn và trừ kho xảy ra tại `POST /verify/payment` khi thanh toán thành công.
+- **Nguồn dữ liệu khi tạo đơn**: Sản phẩm và số lượng lấy từ **giỏ hàng**, không gửi `items` trong body.
+- **Stripe** (`controllers/order.js`): `Stripe` khởi tạo với `process.env.STRIPE_SECRET_KEY`.
+- **Email xác nhận** (`utils/sendOrderConfirmation.js`): Nodemailer, SMTP Gmail (`smtp.gmail.com`, cổng 465, SSL). Biến môi trường: `EMAIL`, `EMAIL_PASSWORD`. Trong controller, gửi mail **không** `await` — response HTTP có thể trả về trước khi email gửi xong.
 
-**Controller**: `controllers/order.js` — `getAllOrders`, `getOrdersAdmin`, `getMyOrder`, `updateStatus`, `getStats`, `newOrderCOD`.  
+**Controller**: `controllers/order.js` — `getAllOrders`, `getOrdersAdmin`, `getMyOrder`, `updateStatus`, `getStats`, `newOrderCOD`, `newOrderOnline`, `verifyPayment`.  
 **Routes**: `routes/order.js`.

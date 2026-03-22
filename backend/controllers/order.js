@@ -1,8 +1,11 @@
+import Stripe from "stripe";
 import Cart from "../models/cart.js";
 import Order from "../models/order.js";
 import Product from "../models/product.js";
 import sendOrderConfirmation from "../utils/sendOrderConfirmation.js";
 import tryCatch from "../utils/tryCatch.js";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const getAllOrders = tryCatch(async (req, res) => {
   const orders = await Order.find({ user: req.user._id });
@@ -98,4 +101,117 @@ export const newOrderCOD = tryCatch(async (req, res) => {
   sendOrderConfirmation(req.user.email, order._id, items, subTotal);
 
   res.status(201).json({ message: "Tạo đơn hàng thành công", order });
+});
+
+export const newOrderOnline = tryCatch(async (req, res) => {
+  const { method, phone, address } = req.body;
+
+  const cart = await Cart.find({ user: req.user._id }).populate(
+    "product",
+    "title price images",
+  );
+
+  if (cart.length === 0) {
+    return res.status(400).json({ message: "Giỏ hàng trống" });
+  }
+
+  const line_items = cart.map((item) => {
+    const imageUrl = item.product.images?.[0]?.url;
+    const productData = { name: item.product.title };
+    if (imageUrl) {
+      productData.images = [imageUrl];
+    }
+    return {
+      price_data: {
+        currency: "vnd",
+        product_data: productData,
+        unit_amount: Math.round(item.product.price),
+      },
+      quantity: item.quantity,
+    };
+  });
+
+  let subTotal = 0;
+  cart.forEach((item) => {
+    subTotal += item.product.price * item.quantity;
+  });
+
+  const session = await stripe.checkout.sessions.create({
+    cancel_url: `${process.env.FRONTEND_URL}/cart`,
+    line_items,
+    metadata: {
+      address,
+      method,
+      phone: phone.toString(),
+      subTotal: subTotal.toString(),
+      userId: req.user._id.toString(),
+    },
+    mode: "payment",
+    payment_method_types: ["card"],
+    success_url: `${process.env.FRONTEND_URL}/order-processing?session_id={CHECKOUT_SESSION_ID}`,
+  });
+
+  res.json({ url: session.url });
+});
+
+export const verifyPayment = tryCatch(async (req, res) => {
+  const { sessionId } = req.query;
+
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+  if (session.payment_status !== "paid") {
+    return res.status(400).json({ message: "Thanh toán chưa hoàn tất" });
+  }
+
+  const existingOrder = await Order.findOne({ paymentInfo: sessionId });
+  if (existingOrder) {
+    return res.status(400).json({ message: "Đơn hàng đã tồn tại" });
+  }
+
+  const { userId, method, phone, address } = session.metadata;
+
+  const cart = await Cart.find({ user: userId }).populate(
+    "product",
+    "title price",
+  );
+
+  if (cart.length === 0) {
+    return res.status(400).json({ message: "Giỏ hàng trống" });
+  }
+
+  let subTotal = 0;
+  const items = cart.map((item) => {
+    subTotal += item.product.price * item.quantity;
+    return {
+      name: item.product.title,
+      price: item.product.price,
+      product: item.product._id,
+      quantity: item.quantity,
+    };
+  });
+
+  const order = await Order.create({
+    address,
+    items,
+    method,
+    paidAt: new Date().toISOString(),
+    paymentInfo: sessionId,
+    phoneNumber: Number(phone),
+    subTotal,
+    user: userId,
+  });
+
+  for (const item of order.items) {
+    const product = await Product.findById(item.product);
+    product.stock -= item.quantity;
+    product.sold += item.quantity;
+    await product.save();
+  }
+
+  await Cart.deleteMany({ user: userId });
+
+  const user = await Order.findById(order._id).populate("user");
+  sendOrderConfirmation(user.user.email, order._id, items, subTotal);
+
+  res.json({ message: "Thanh toán thành công", order });
 });

@@ -1,5 +1,5 @@
+import "dotenv/config";
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 import connectCloudinary from "./config/cloudinary.js";
 import addressRoutes from "./routes/address.js";
@@ -8,8 +8,6 @@ import orderRoutes from "./routes/order.js";
 import productRoutes from "./routes/product.js";
 import userRoutes from "./routes/user.js";
 import connectDB from "./utils/db.js";
-
-dotenv.config();
 
 connectCloudinary();
 
