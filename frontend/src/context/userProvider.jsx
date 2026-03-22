@@ -87,6 +87,47 @@ export function UserProvider({ children }) {
     }
   };
 
+  const updateProfile = async (data) => {
+    setBtnLoading(true);
+    try {
+      const token = Cookies.get("token");
+      const res = await axios.put(
+        `${USER_SERVER_URL}/api/user/me/update`,
+        data,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      setUser((prev) => ({ ...prev, ...res.data.user }));
+      toast.success(res.data.message ?? "Cập nhật thành công");
+    } catch (error) {
+      const message = error?.response?.data?.message ?? "Cập nhật thất bại";
+      toast.error(message);
+    } finally {
+      setBtnLoading(false);
+    }
+  };
+
+  const changePassword = async (oldPassword, newPassword) => {
+    setBtnLoading(true);
+    try {
+      const token = Cookies.get("token");
+      const res = await axios.put(
+        `${USER_SERVER_URL}/api/user/me/password`,
+        { newPassword, oldPassword },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      toast.success(res.data.message ?? "Đổi mật khẩu thành công");
+    } catch (error) {
+      const message = error?.response?.data?.message ?? "Đổi mật khẩu thất bại";
+      toast.error(message);
+    } finally {
+      setBtnLoading(false);
+    }
+  };
+
   const logout = () => {
     Cookies.remove("token");
     setUser([]);
@@ -97,11 +138,13 @@ export function UserProvider({ children }) {
 
   const value = {
     btnLoading,
+    changePassword,
     isAuth,
     loading,
     loginUser,
     logout,
     registerUser,
+    updateProfile,
     user,
   };
 

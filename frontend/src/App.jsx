@@ -1,9 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-
 import Footer from "@/components/Footer";
 import { Loading } from "@/components/Loading";
 import Navbar from "@/components/Navbar";
 import { useUserData } from "@/context/userContext.js";
+import Account from "@/pages/Account";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
@@ -80,6 +80,10 @@ function App() {
           <Route
             element={isAuth ? <OrderPage /> : <Navigate replace to="/login" />}
             path="/order/:id"
+          />
+          <Route
+            element={isAuth ? <Account /> : <Navigate replace to="/login" />}
+            path="/account"
           />
           <Route
             element={
