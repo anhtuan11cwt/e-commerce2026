@@ -5,6 +5,7 @@ import { Loading } from "@/components/Loading";
 import Navbar from "@/components/Navbar";
 import { useUserData } from "@/context/userContext.js";
 import Cart from "@/pages/Cart";
+import Checkout from "@/pages/Checkout";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
@@ -38,6 +39,10 @@ function App() {
           <Route
             element={isAuth ? <Cart /> : <Navigate replace to="/login" />}
             path="/cart"
+          />
+          <Route
+            element={isAuth ? <Checkout /> : <Navigate replace to="/login" />}
+            path="/checkout"
           />
           <Route element={<NotFound />} path="*" />
         </Routes>
