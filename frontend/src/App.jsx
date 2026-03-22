@@ -9,6 +9,7 @@ import Checkout from "@/pages/Checkout";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
+import OrderPage from "@/pages/OrderPage";
 import OrderProcessing from "@/pages/OrderProcessing";
 import Orders from "@/pages/Orders";
 import Payment from "@/pages/Payment";
@@ -60,6 +61,10 @@ function App() {
           <Route
             element={isAuth ? <Orders /> : <Navigate replace to="/login" />}
             path="/orders"
+          />
+          <Route
+            element={isAuth ? <OrderPage /> : <Navigate replace to="/login" />}
+            path="/order/:id"
           />
           <Route element={<NotFound />} path="*" />
         </Routes>

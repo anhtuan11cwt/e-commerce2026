@@ -1,13 +1,29 @@
 import axios from "axios";
 import jsCookie from "js-cookie";
-import { Package, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "@/components/Loading";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { SERVER_URL } from "@/context/cartContext.js";
 import { format_vnd } from "@/utils/format_vnd";
+
+const statusMap = {
+  cancelled: { className: "bg-red-500 text-white", label: "Đã hủy" },
+  delivered: { className: "bg-green-500 text-white", label: "Đã giao" },
+  pending: { className: "bg-yellow-500 text-white", label: "Chờ xử lý" },
+  processing: { className: "bg-blue-500 text-white", label: "Đang xử lý" },
+  shipped: { className: "bg-purple-500 text-white", label: "Đang giao" },
+};
 
 function Orders() {
   const navigate = useNavigate();
@@ -51,62 +67,55 @@ function Orders() {
     );
   }
 
-  const statusMap = {
-    cancelled: { color: "bg-red-500", label: "Đã hủy" },
-    delivered: { color: "bg-green-500", label: "Đã giao" },
-    pending: { color: "bg-yellow-500", label: "Chờ xử lý" },
-    processing: { color: "bg-blue-500", label: "Đang xử lý" },
-    shipped: { color: "bg-purple-500", label: "Đang giao" },
-  };
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <h1 className="mb-8 font-bold text-2xl tracking-tight sm:text-3xl">
         Đơn hàng của tôi
       </h1>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {orders.map((order) => {
           const status = statusMap[order.status] || statusMap.pending;
           return (
-            <div className="rounded-xl border bg-card p-6" key={order._id}>
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                    <Package className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">
-                      Đơn hàng #{order._id.slice(-8).toUpperCase()}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {new Date(order.createdAt).toLocaleDateString("vi-VN")}
-                    </p>
-                  </div>
+            <Card key={order._id}>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="font-mono text-sm">
+                    #{order._id.slice(-8).toUpperCase()}
+                  </CardTitle>
+                  <Badge className={status.className}>{status.label}</Badge>
                 </div>
+              </CardHeader>
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-medium text-white text-xs ${status.color}`}
-                  >
-                    {status.label}
-                  </span>
-                  <span className="font-bold text-sm">
+              <CardContent className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Số sản phẩm</span>
+                  <span className="font-medium">{order.items.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tổng tiền</span>
+                  <span className="font-bold text-primary">
                     {format_vnd(order.subTotal)}
                   </span>
                 </div>
-              </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Ngày đặt</span>
+                  <span>
+                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                  </span>
+                </div>
+              </CardContent>
 
-              <div className="flex flex-wrap gap-2 text-muted-foreground text-xs">
-                <span>{order.items.length} sản phẩm</span>
-                <span>•</span>
-                <span>
-                  {order.method === "COD"
-                    ? "Thanh toán khi nhận"
-                    : "Đã thanh toán"}
-                </span>
-              </div>
-            </div>
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  onClick={() => navigate(`/order/${order._id}`)}
+                  variant="outline"
+                >
+                  Xem chi tiết
+                </Button>
+              </CardFooter>
+            </Card>
           );
         })}
       </div>
