@@ -1,4 +1,13 @@
-import { AlertCircle, Minus, Plus, ShoppingCart } from "lucide-react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import {
+  AlertCircle,
+  Minus,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
@@ -12,20 +21,111 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useCartData } from "@/context/cartContext";
-import { useProductData } from "@/context/productContext";
+import { SERVER_URL, useProductData } from "@/context/productContext";
 import { useUserData } from "@/context/userContext";
 import { format_vnd } from "@/utils/format_vnd";
 
 function ProductPage() {
   const { id } = useParams();
-  const { isAuth } = useUserData();
+  const { isAuth, user } = useUserData();
   const { fetchProduct, product, productLoading, relatedProduct } =
     useProductData();
   const { addToCart } = useCartData();
 
   const [quantity, setQuantity] = useState(1);
   const [btnLoading, setBtnLoading] = useState(false);
+
+  // Admin update state
+  const [show, setShow] = useState(false);
+  const [title, setTitle] = useState("");
+  const [about, setAbout] = useState("");
+  const [stock, setStock] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const [updateBtnLoading, setUpdateBtnLoading] = useState(false);
+  const [updatedImages, setUpdatedImages] = useState(null);
+
+  const categoriesList = [
+    "Điện thoại",
+    "Laptop",
+    "Máy tính bảng",
+    "Phụ kiện",
+    "Đồng hồ",
+    "Thời trang",
+    "Gia dụng",
+    "Khác",
+  ];
+
+  const updateHandler = () => {
+    setShow(!show);
+    if (product) {
+      setTitle(product.title || "");
+      setAbout(product.about || "");
+      setStock(String(product.stock || ""));
+      setPrice(String(product.price || ""));
+      setCategory(product.category || "");
+    }
+  };
+
+  const submitHandler = async () => {
+    setUpdateBtnLoading(true);
+    try {
+      const token = Cookies.get("token");
+      await axios.put(
+        `${SERVER_URL}/api/product/${id}`,
+        { about, category, price: Number(price), stock: Number(stock), title },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Cập nhật sản phẩm thành công");
+      fetchProduct(id);
+      setShow(false);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ?? "Cập nhật sản phẩm thất bại";
+      toast.error(message);
+    } finally {
+      setUpdateBtnLoading(false);
+    }
+  };
+
+  const handleSubmitImage = async () => {
+    if (!updatedImages || updatedImages.length === 0) {
+      toast.error("Vui lòng chọn hình ảnh mới");
+      return;
+    }
+
+    setUpdateBtnLoading(true);
+    try {
+      const formData = new FormData();
+      for (const image of updatedImages) {
+        formData.append("files", image);
+      }
+
+      const token = Cookies.get("token");
+      await axios.post(
+        `${SERVER_URL}/api/product/product-image/${id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+      toast.success("Cập nhật hình ảnh thành công");
+      fetchProduct(id);
+      setUpdatedImages(null);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ?? "Cập nhật hình ảnh thất bại";
+      toast.error(message);
+    } finally {
+      setUpdateBtnLoading(false);
+    }
+  };
 
   useEffect(() => {
     window.scrollTo({ behavior: "smooth", top: 0 });
@@ -166,7 +266,7 @@ function ProductPage() {
           </div>
 
           {/* Chọn số lượng và thêm vào giỏ */}
-          {product.stock > 0 ? (
+          {user?.role !== "admin" && product.stock > 0 && (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex items-center rounded-lg border">
                 <Button
@@ -213,19 +313,9 @@ function ProductPage() {
                 )}
               </Button>
             </div>
-          ) : (
-            !isAuth && (
-              <p className="text-muted-foreground text-sm">
-                Vui lòng{" "}
-                <Link className="text-primary hover:underline" to="/login">
-                  đăng nhập
-                </Link>{" "}
-                để mua hàng
-              </p>
-            )
           )}
 
-          {!isAuth && product.stock > 0 && (
+          {user?.role !== "admin" && !isAuth && product.stock > 0 && (
             <p className="text-muted-foreground text-sm">
               Vui lòng{" "}
               <Link className="text-primary hover:underline" to="/login">
@@ -234,8 +324,161 @@ function ProductPage() {
               để thêm sản phẩm vào giỏ hàng
             </p>
           )}
+
+          {user?.role !== "admin" && product.stock <= 0 && !isAuth && (
+            <p className="text-muted-foreground text-sm">
+              Vui lòng{" "}
+              <Link className="text-primary hover:underline" to="/login">
+                đăng nhập
+              </Link>{" "}
+              để mua hàng
+            </p>
+          )}
         </div>
       </div>
+
+      {/* Admin Edit Section */}
+      {user?.role === "admin" && (
+        <div className="mt-8 rounded-xl border border-border bg-card p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-lg">Quản lý sản phẩm</h2>
+            <Button
+              onClick={updateHandler}
+              size="sm"
+              variant={show ? "destructive" : "outline"}
+            >
+              {show ? (
+                <>
+                  <X className="mr-1.5 h-4 w-4" />
+                  Đóng
+                </>
+              ) : (
+                <>
+                  <Pencil className="mr-1.5 h-4 w-4" />
+                  Chỉnh sửa
+                </>
+              )}
+            </Button>
+          </div>
+
+          {show && (
+            <div className="mt-6 space-y-6">
+              {/* Text Update Form */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-muted-foreground text-sm">
+                  Cập nhật thông tin
+                </h3>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admin-title">Tiêu đề</Label>
+                    <Input
+                      id="admin-title"
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Nhập tên sản phẩm"
+                      value={title}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admin-about">Mô tả</Label>
+                    <textarea
+                      className="flex min-h-[80px] w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+                      id="admin-about"
+                      onChange={(e) => setAbout(e.target.value)}
+                      placeholder="Nhập mô tả sản phẩm"
+                      value={about}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admin-category">Danh mục</Label>
+                    <select
+                      className="flex h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 md:text-sm dark:bg-input/30"
+                      id="admin-category"
+                      onChange={(e) => setCategory(e.target.value)}
+                      value={category}
+                    >
+                      <option value="">Chọn danh mục</option>
+                      {categoriesList.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="admin-price">Giá (VNĐ)</Label>
+                      <Input
+                        id="admin-price"
+                        min="0"
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="0"
+                        type="number"
+                        value={price}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="admin-stock">Số lượng</Label>
+                      <Input
+                        id="admin-stock"
+                        min="0"
+                        onChange={(e) => setStock(e.target.value)}
+                        placeholder="0"
+                        type="number"
+                        value={stock}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Button disabled={updateBtnLoading} onClick={submitHandler}>
+                  {updateBtnLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Đang cập nhật...
+                    </span>
+                  ) : (
+                    "Cập nhật sản phẩm"
+                  )}
+                </Button>
+              </div>
+
+              {/* Image Update Form */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="font-medium text-muted-foreground text-sm">
+                  Cập nhật hình ảnh
+                </h3>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admin-images">Chọn hình ảnh mới</Label>
+                    <Input
+                      accept="image/*"
+                      id="admin-images"
+                      multiple
+                      onChange={(e) =>
+                        setUpdatedImages(Array.from(e.target.files))
+                      }
+                      type="file"
+                    />
+                  </div>
+                </div>
+                <Button
+                  disabled={updateBtnLoading}
+                  onClick={handleSubmitImage}
+                  variant="secondary"
+                >
+                  {updateBtnLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Đang cập nhật...
+                    </span>
+                  ) : (
+                    "Cập nhật hình ảnh"
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Sản phẩm liên quan */}
       {relatedProduct && relatedProduct.length > 0 && (

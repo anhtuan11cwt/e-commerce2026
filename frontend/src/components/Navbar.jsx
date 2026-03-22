@@ -1,4 +1,4 @@
-import { ShoppingBag, ShoppingCart, User } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ShoppingCart, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -60,21 +60,35 @@ function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          {/* Cart */}
-          <Button
-            className="relative"
-            onClick={() => navigate("/cart")}
-            size="icon"
-            variant="ghost"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {totalItem > 0 && (
-              <span className="-top-1 -right-1 absolute flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {totalItem}
-              </span>
-            )}
-            <span className="sr-only">Giỏ hàng</span>
-          </Button>
+          {/* Cart - hidden for admin */}
+          {user?.role !== "admin" && (
+            <Button
+              className="relative"
+              onClick={() => navigate("/cart")}
+              size="icon"
+              variant="ghost"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {totalItem > 0 && (
+                <span className="-top-1 -right-1 absolute flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {totalItem}
+                </span>
+              )}
+              <span className="sr-only">Giỏ hàng</span>
+            </Button>
+          )}
+
+          {/* Dashboard link for admin */}
+          {user?.role === "admin" && (
+            <Button
+              onClick={() => navigate("/admin/dashboard")}
+              size="sm"
+              variant="ghost"
+            >
+              <LayoutDashboard className="mr-1.5 h-4 w-4" />
+              Dashboard
+            </Button>
+          )}
 
           {/* Account Dropdown */}
           <DropdownMenu>
@@ -92,18 +106,15 @@ function Navbar() {
                   <DropdownMenuLabel className="w-full truncate">
                     {user?.email ?? "Tài khoản"}
                   </DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => navigate("/account")}>
-                    Tài khoản
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/orders")}>
-                    Đơn hàng
-                  </DropdownMenuItem>
-                  {user && user.role === "admin" && (
-                    <DropdownMenuItem
-                      onClick={() => navigate("/admin/dashboard")}
-                    >
-                      Dashboard
-                    </DropdownMenuItem>
+                  {user?.role !== "admin" && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/account")}>
+                        Tài khoản
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/orders")}>
+                        Đơn hàng
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
