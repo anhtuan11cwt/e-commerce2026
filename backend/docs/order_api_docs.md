@@ -389,15 +389,60 @@
 
 ---
 
+---
+
+## 9. Thống kê chi tiêu của người dùng (User hiện tại)
+
+- **Method**: GET
+- **URL**: `http://localhost:5000/api/order/spending/stats`
+- **Authorization**: Có (yêu cầu đăng nhập)
+- **Headers**:
+  - `Authorization: Bearer {JWT_TOKEN}`
+
+- **Response**:
+  - 200 (thành công): Trả về thống kê tổng hợp của người dùng đang đăng nhập.
+
+```json
+{
+  "monthlySpending": [
+    { "month": "2024-01", "amount": 500000 },
+    { "month": "2024-02", "amount": 750000 }
+  ],
+  "statusCounts": {
+    "pending": 2,
+    "completed": 5,
+    "cancelled": 1
+  },
+  "topProducts": [
+    {
+      "name": "Tên sản phẩm",
+      "quantity": 10,
+      "totalSpent": 1000000
+    }
+  ],
+  "totalOrders": 8,
+  "totalSpent": 1250000
+}
+```
+
+- **Chi tiết các trường**:
+  - `monthlySpending`: Danh sách chi tiêu theo từng tháng (YYYY-MM).
+  - `statusCounts`: Số lượng đơn hàng theo từng trạng thái.
+  - `topProducts`: Top 5 sản phẩm được mua nhiều nhất của người dùng này (được chọn dựa trên số lượng mua).
+  - `totalOrders`: Tổng số đơn hàng đã đặt.
+  - `totalSpent`: Tổng số tiền đã chi tiêu (tính theo `subTotal`).
+
+---
+
 ## Ghi chú chung
 
 - **Đăng ký route** (`index.js`): `app.use("/api/order", orderRoutes)` — toàn bộ endpoint đặt hàng nằm dưới prefix `/api/order`.
-- **Thứ tự route** (`routes/order.js`): Các đường dẫn cố định (`/new/cod`, `/new/online`, `/verify/payment`, `/all`, `/admin/all`, `/stats`) khai báo **trước** `GET /:id` và `POST /:id` để không bị khớp nhầm `id` với chuỗi như `"all"` hoặc `"stats"`.
+- **Thứ tự route** (`routes/order.js`): Các đường dẫn cố định (`/new/cod`, `/new/online`, `/verify/payment`, `/all`, `/admin/all`, `/stats`, `/spending/stats`) khai báo **trước** `GET /:id` và `POST /:id` để không bị khớp nhầm `id`.
 - **Xác thực**: Mọi route order dùng `isAuth` — JWT trong `Authorization: Bearer ...`. Email xác nhận COD lấy từ `req.user.email`; sau thanh toán online, email lấy từ user populate trên đơn.
 - **COD vs Online**: COD tạo đơn và trừ kho ngay tại `POST /new/cod`. Online chỉ tạo phiên Stripe tại `POST /new/online`; đơn và trừ kho xảy ra tại `POST /verify/payment` khi thanh toán thành công.
 - **Nguồn dữ liệu khi tạo đơn**: Sản phẩm và số lượng lấy từ **giỏ hàng**, không gửi `items` trong body.
 - **Stripe** (`controllers/order.js`): `Stripe` khởi tạo với `process.env.STRIPE_SECRET_KEY`.
 - **Email xác nhận** (`utils/sendOrderConfirmation.js`): Nodemailer, SMTP Gmail (`smtp.gmail.com`, cổng 465, SSL). Biến môi trường: `EMAIL`, `EMAIL_PASSWORD`. Trong controller, gửi mail **không** `await` — response HTTP có thể trả về trước khi email gửi xong.
 
-**Controller**: `controllers/order.js` — `getAllOrders`, `getOrdersAdmin`, `getMyOrder`, `updateStatus`, `getStats`, `newOrderCOD`, `newOrderOnline`, `verifyPayment`.  
+**Controller**: `controllers/order.js` — `getAllOrders`, `getOrdersAdmin`, `getMyOrder`, `updateStatus`, `getStats`, `getUserSpendingStats`, `newOrderCOD`, `newOrderOnline`, `verifyPayment`.  
 **Routes**: `routes/order.js`.

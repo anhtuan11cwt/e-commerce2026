@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   KeyRound,
   LogOut,
   Mail,
@@ -279,6 +280,14 @@ function Account() {
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             Đơn hàng của tôi
+          </Button>
+          <Button
+            className="flex-1"
+            onClick={() => navigate("/spending")}
+            variant="outline"
+          >
+            <BarChart3 className="mr-2 h-4 w-4" />
+            Thống kê chi tiêu
           </Button>
           <Button
             className="flex-1"

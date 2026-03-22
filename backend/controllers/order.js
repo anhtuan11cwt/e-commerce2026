@@ -57,6 +57,61 @@ export const getStats = tryCatch(async (req, res) => {
   res.json({ codCount, data, onlineCount });
 });
 
+export const getUserSpendingStats = tryCatch(async (req, res) => {
+  const userId = req.user._id;
+  const orders = await Order.find({ user: userId }).populate("items.product");
+
+  const totalOrders = orders.length;
+  const totalSpent = orders.reduce((sum, order) => sum + order.subTotal, 0);
+
+  const statusCounts = {};
+  for (const order of orders) {
+    statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+  }
+
+  const monthlySpending = {};
+  for (const order of orders) {
+    const date = new Date(order.createdAt);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    monthlySpending[key] = (monthlySpending[key] || 0) + order.subTotal;
+  }
+
+  const productCounts = {};
+  for (const order of orders) {
+    for (const item of order.items) {
+      const productId =
+        item.product?._id?.toString() || item.product?.toString();
+      const productName =
+        item.name || item.product?.title || "Sản phẩm không xác định";
+      if (!productCounts[productId]) {
+        productCounts[productId] = {
+          name: productName,
+          quantity: 0,
+          totalSpent: 0,
+        };
+      }
+      productCounts[productId].quantity += item.quantity;
+      productCounts[productId].totalSpent += item.price * item.quantity;
+    }
+  }
+
+  const topProducts = Object.values(productCounts)
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 5);
+
+  const monthlyData = Object.entries(monthlySpending)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, amount]) => ({ amount, month }));
+
+  res.json({
+    monthlySpending: monthlyData,
+    statusCounts,
+    topProducts,
+    totalOrders,
+    totalSpent,
+  });
+});
+
 export const newOrderCOD = tryCatch(async (req, res) => {
   const { method, phone, address } = req.body;
 

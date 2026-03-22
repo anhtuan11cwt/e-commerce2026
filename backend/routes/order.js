@@ -4,6 +4,7 @@ import {
   getMyOrder,
   getOrdersAdmin,
   getStats,
+  getUserSpendingStats,
   newOrderCOD,
   newOrderOnline,
   updateStatus,
@@ -19,6 +20,7 @@ router.post("/verify/payment", isAuth, verifyPayment);
 router.get("/all", isAuth, getAllOrders);
 router.get("/admin/all", isAuth, getOrdersAdmin);
 router.get("/stats", isAuth, getStats);
+router.get("/spending/stats", isAuth, getUserSpendingStats);
 router.get("/:id", isAuth, getMyOrder);
 router.post("/:id", isAuth, updateStatus);
 

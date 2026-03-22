@@ -17,6 +17,7 @@ import Payment from "@/pages/Payment";
 import ProductPage from "@/pages/ProductPage";
 import Products from "@/pages/Products";
 import Register from "@/pages/Register";
+import SpendingStats from "@/pages/SpendingStats";
 
 function AdminRoute({ children }) {
   const { isAuth, user } = useUserData();
@@ -84,6 +85,12 @@ function App() {
           <Route
             element={isAuth ? <Account /> : <Navigate replace to="/login" />}
             path="/account"
+          />
+          <Route
+            element={
+              isAuth ? <SpendingStats /> : <Navigate replace to="/login" />
+            }
+            path="/spending"
           />
           <Route
             element={
