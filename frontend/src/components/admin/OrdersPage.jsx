@@ -1,18 +1,22 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { ShoppingBag } from "lucide-react";
+import { Search, ShoppingBag } from "lucide-react";
+import moment from "moment";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 import { Loading } from "@/components/Loading";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { SERVER_URL } from "@/context/cartContext.js";
 import { format_vnd } from "@/utils/format_vnd";
 
@@ -34,6 +38,7 @@ const statusOptions = [
 
 function OrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = useCallback(async () => {
@@ -54,7 +59,7 @@ function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const updateStatus = async (orderId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     try {
       const token = Cookies.get("token");
       await axios.post(
@@ -72,6 +77,13 @@ function OrdersPage() {
       toast.error("Cập nhật trạng thái thất bại");
     }
   };
+
+  const filteredOrders = orders.filter((order) => {
+    const keyword = search.toLowerCase();
+    const email = order.user?.email?.toLowerCase() || "";
+    const id = order._id.toLowerCase();
+    return email.includes(keyword) || id.includes(keyword);
+  });
 
   if (loading) {
     return <Loading />;
@@ -91,68 +103,96 @@ function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-bold text-2xl">Quản lý đơn hàng ({orders.length})</h2>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {orders.map((order) => {
-          const status = statusMap[order.status] || statusMap.pending;
-          return (
-            <Card key={order._id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="font-mono text-sm">
-                    #{order._id.slice(-8).toUpperCase()}
-                  </CardTitle>
-                  <Badge className={status.className}>{status.label}</Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Khách hàng</span>
-                  <span className="font-medium truncate">
-                    {order.user?.name || order.user?.email || "N/A"}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Số sản phẩm</span>
-                  <span className="font-medium">{order.items.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tổng tiền</span>
-                  <span className="font-bold text-primary">
-                    {format_vnd(order.subTotal)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Thanh toán</span>
-                  <span>{order.method}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Ngày đặt</span>
-                  <span>
-                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
-                  </span>
-                </div>
-              </CardContent>
-
-              <CardFooter className="flex-col gap-2">
-                <select
-                  className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-                  onChange={(e) => updateStatus(order._id, e.target.value)}
-                  value={order.status}
-                >
-                  {statusOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </CardFooter>
-            </Card>
-          );
-        })}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-bold text-2xl">
+          Quản lý đơn hàng ({orders.length})
+        </h2>
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Tìm theo Email hoặc ID..."
+            value={search}
+          />
+        </div>
       </div>
+
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Mã đơn hàng</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Tổng tiền</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Ngày đặt</TableHead>
+              <TableHead className="text-right">Hành động</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredOrders.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  className="py-8 text-center text-muted-foreground"
+                  colSpan={6}
+                >
+                  Không tìm thấy đơn hàng nào
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredOrders.map((order) => {
+                const status = statusMap[order.status] || statusMap.pending;
+                return (
+                  <TableRow key={order._id}>
+                    <TableCell>
+                      <Link
+                        className="font-mono text-primary text-sm hover:underline"
+                        to={`/order/${order._id}`}
+                      >
+                        #{order._id.slice(-8).toUpperCase()}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {order.user?.email || "N/A"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {format_vnd(order.subTotal)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={status.className}>{status.label}</Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {moment(order.createdAt).format("DD-MMM-YYYY")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <select
+                        className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+                        onChange={(e) =>
+                          updateOrderStatus(order._id, e.target.value)
+                        }
+                        value={order.status}
+                      >
+                        {statusOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {search && (
+        <p className="text-muted-foreground text-sm">
+          Hiển thị {filteredOrders.length} / {orders.length} đơn hàng
+        </p>
+      )}
     </div>
   );
 }

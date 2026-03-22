@@ -9,6 +9,17 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { Loading } from "@/components/Loading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +62,21 @@ function InfoPage() {
   const totalSold =
     stats.data?.reduce((sum, item) => sum + (item.sold || 0), 0) || 0;
   const totalOrders = (stats.codCount || 0) + (stats.onlineCount || 0);
-  const maxSold = Math.max(...(stats.data?.map((d) => d.sold || 0) || [1]), 1);
+
+  const paymentData = [
+    { fill: "#8884d8", name: "Online", value: stats.onlineCount || 0 },
+    { fill: "#82ca9d", name: "COD", value: stats.codCount || 0 },
+  ];
+
+  const percentageData = paymentData.map((item) => ({
+    ...item,
+    percentage:
+      totalOrders > 0
+        ? Number.parseFloat(((item.value / totalOrders) * 100).toFixed(2))
+        : 0,
+  }));
+
+  const productData = (stats.data || []).filter((item) => item.sold > 0);
 
   return (
     <div className="space-y-6">
@@ -108,8 +133,120 @@ function InfoPage() {
         </Card>
       </div>
 
-      {/* Product Sales Chart */}
-      {stats.data && stats.data.length > 0 && (
+      {/* Pie Charts Row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Payment Methods - Quantity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Phương thức thanh toán (Số lượng)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer height={300} width="100%">
+              <PieChart>
+                <Pie
+                  cx="50%"
+                  cy="50%"
+                  data={paymentData}
+                  dataKey="value"
+                  innerRadius={60}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  labelLine={true}
+                  outerRadius={100}
+                >
+                  {paymentData.map((entry) => (
+                    <Cell fill={entry.fill} key={entry.name} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "8px",
+                    color: "var(--color-card-foreground)",
+                  }}
+                />
+                <text
+                  fill="var(--color-card-foreground)"
+                  fontSize={14}
+                  textAnchor="middle"
+                  x="50%"
+                  y="50%"
+                >
+                  <tspan dy="-6" x="50%">
+                    {totalOrders}
+                  </tspan>
+                  <tspan
+                    dy="20"
+                    fill="var(--color-muted-foreground)"
+                    fontSize={12}
+                    x="50%"
+                  >
+                    Đơn hàng
+                  </tspan>
+                </text>
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Payment Methods - Percentage */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Phương thức thanh toán (Tỷ lệ %)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer height={300} width="100%">
+              <PieChart>
+                <Pie
+                  cx="50%"
+                  cy="50%"
+                  data={percentageData}
+                  dataKey="percentage"
+                  innerRadius={60}
+                  label={({ name, percentage }) => `${name}: ${percentage}%`}
+                  labelLine={true}
+                  outerRadius={100}
+                >
+                  {percentageData.map((entry) => (
+                    <Cell fill={entry.fill} key={entry.name} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "8px",
+                    color: "var(--color-card-foreground)",
+                  }}
+                  formatter={(value) => [`${value}%`, "Tỷ lệ"]}
+                />
+                <text
+                  fill="var(--color-card-foreground)"
+                  fontSize={14}
+                  textAnchor="middle"
+                  x="50%"
+                  y="50%"
+                >
+                  <tspan dy="-6" x="50%">
+                    {totalOrders}
+                  </tspan>
+                  <tspan
+                    dy="20"
+                    fill="var(--color-muted-foreground)"
+                    fontSize={12}
+                    x="50%"
+                  >
+                    Người dùng
+                  </tspan>
+                </text>
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bar Chart - Products Sold */}
+      {productData.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -118,28 +255,45 @@ function InfoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {stats.data.map((item) => (
-                <div className="flex items-center gap-3" key={item.title}>
-                  <span className="w-32 truncate font-medium text-sm sm:w-48">
-                    {item.title}
-                  </span>
-                  <div className="flex-1">
-                    <div className="h-6 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all duration-500"
-                        style={{
-                          width: `${Math.max((item.sold / maxSold) * 100, item.sold > 0 ? 8 : 0)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <span className="w-12 text-right font-mono text-muted-foreground text-sm">
-                    {item.sold}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer height={400} width="100%">
+              <BarChart
+                data={productData}
+                margin={{ bottom: 20, left: 10, right: 10, top: 10 }}
+              >
+                <XAxis
+                  angle={-45}
+                  dataKey="title"
+                  height={60}
+                  interval={0}
+                  textAnchor="end"
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                />
+                <YAxis allowDecimals={false} tickLine={false} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload?.length) {
+                      return (
+                        <div className="rounded-lg border bg-white p-3 shadow-lg dark:bg-zinc-900">
+                          <p className="font-medium text-sm">
+                            {payload[0].payload.title}
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            Đã bán:{" "}
+                            <span className="font-bold text-foreground">
+                              {payload[0].value}
+                            </span>{" "}
+                            sản phẩm
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="sold" fill="#8884d8" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       )}
